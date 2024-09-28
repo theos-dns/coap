@@ -1,0 +1,26 @@
+name: Deploy Images to GHCR
+
+on:
+  release:
+    types: [ created ]
+
+jobs:
+  coap-image:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Checkout GitHub Action'
+        uses: actions/checkout@main
+
+      - name: 'Login to GitHub Container Registry'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{github.actor}}
+          password: ${{secrets.CR_PAT}}
+
+      - name: 'Build Inventory Image'
+        run: |
+          docker build . --tag ghcr.io/theos-dns/coap:${{ github.ref_name }}
+          docker push ghcr.io/theos-dns/coap:${{ github.ref_name }}
+          docker tag ghcr.io/theos-dns/coap:${{ github.ref_name }} ghcr.io/theos-dns/coap:latest
+          docker push ghcr.io/theos-dns/coap:latest
